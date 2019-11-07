@@ -1,0 +1,141 @@
+// 2. Переделать проверку победы, чтобы она не была реализована просто набором условий.
+
+    private static boolean checkWin(char c) {
+        int sumHoriz = 0;
+        int sumVert = 0;
+        int sumDiag1 = 0;     // сумма элементов прямой диагонали
+        int sumDiag2 = 0;     // сумма элементов обратной диагонали
+        for (int i = 0; i < fieldSizeY; i++) {
+            for (int j = 0; j < fieldSizeX; j++) {
+                sumHoriz += field[i][j];
+            }
+            if (sumHoriz == fieldSizeX * c)
+                return true;
+            sumHoriz = 0;
+            sumDiag1 += field[i][i];
+            sumDiag2 += field[i][field[i].length - 1 - i];
+        }
+        if (sumDiag1 == fieldSizeX * c || sumDiag2 == fieldSizeX * c)
+            return true;
+        for (int j = 0; j < fieldSizeX; j++) {
+            for (int i = 0; i < fieldSizeY; i++) {
+                sumVert += field[i][j];
+            }
+            if (sumVert == fieldSizeY * c)
+                return true;
+            sumVert = 0;
+        }
+        return false;
+    }
+
+
+
+
+//3. * Попробовать переписать логику проверки победы, чтобы она работала для поля 5х5 и количества символов 4.
+
+    private static boolean checkWin(char c) {  // метод работает для n <= fieldSizeX && n <= fieldSizeY
+        int n = 4;    //   чмсло символов выигрышной последовательности (n для краткости); наверно, можно вынести вне метода
+        int sumHoriz = 0;
+        int sumVert = 0;
+        int sumDiag1 = 0;     // сумма элементов прямой диагонали
+        int sumDiag2 = 0;     // сумма элементов обратной диагонали
+        for (int y = 0; y < fieldSizeY - n + 1; y++) {  // цикл сдвига рамки n * n вдоль оси Y
+            for (int x = 0; x < fieldSizeX - n + 1; x++) {    // цикл сдвига рамки n * n вдоль оси X
+                for (int i = y; i < n + y; i++) {
+                    for (int j = x; j < n + x; j++) {
+                        sumHoriz += field[i][j];
+                        sumVert += field[j][i];
+                    }
+                    if (sumHoriz == n * c || sumVert == n * c)
+                        return true;
+                    sumHoriz = 0;
+                    sumVert = 0;
+                    sumDiag1 += field[i][i - y + x];
+                    sumDiag2 += field[i][n - 1 + x + y - i];
+                }
+                if (sumDiag1 == n * c || sumDiag2 == n * c)
+                    return true;
+                sumDiag1 = 0;
+                sumDiag2 = 0;
+            }
+        }
+        return false;
+    }
+
+
+
+
+// 4. *** Доработать искусственный интеллект, чтобы он мог блокировать ходы игрока, и пытаться выиграть сам.
+
+    private static void aiTurn() {    // годится для поля 3 х 3
+        int x;
+        int y;
+        int counter = 0;
+        int sumHoriz = 0;
+        int sumVert = 0;
+        int sumDiag1 = 0;     // сумма элементов прямой диагонали
+        int sumDiag2 = 0;     // сумма элементов обратной диагонали
+        int preWin1 = (fieldSizeX-1) * DOT_AI + DOT_EMPTY;
+        int preWin2 = (fieldSizeX-1) * DOT_HUMAN + DOT_EMPTY;
+        int[] temp = new int[fieldSizeX];
+        int[] temp1 = new int[fieldSizeX];
+        int[] temp2 = new int[fieldSizeX];
+        for (int i = 0; i < fieldSizeY; i++) {
+            for (int j = 0; j < fieldSizeX; j++) {
+                sumHoriz += field[i][j];
+                temp[j] = field[i][j];
+            }
+            if (sumHoriz == preWin1 || sumHoriz == preWin2) {
+                for (int z = 0; z < fieldSizeX; z++) {
+                    if (temp[z] == DOT_EMPTY) {
+                        field[i][z] = DOT_AI;
+                        counter++;
+                    }
+                }
+            }
+            sumHoriz = 0;
+            sumDiag1 += field[i][i];
+            temp1[i] = field[i][i];
+            sumDiag2 += field[i][fieldSizeX - 1 - i];
+            temp2[i] = field[i][fieldSizeX - 1 - i];
+        }
+        if (counter == 0 && (sumDiag1 == preWin1 || sumDiag1 == preWin2)) {
+            for (int z = 0; z < fieldSizeX; z++) {
+                if (temp1[z] == DOT_EMPTY) {
+                    field[z][z] = DOT_AI;
+                    counter++;
+                }
+            }
+        }
+        if (counter == 0 && (sumDiag2 == preWin1 || sumDiag2 == preWin2)) {
+            for (int z = 0; z < fieldSizeX; z++) {
+                if (temp2[z] == DOT_EMPTY) {
+                    field[z][fieldSizeX - 1 - z] = DOT_AI;
+                    counter++;
+                }
+            }
+        }
+        for (int j = 0; j < fieldSizeX; j++) {
+            for (int i = 0; i < fieldSizeY; i++) {
+                sumVert += field[i][j];
+                temp[i] = field[i][j];
+            }
+            if (counter == 0 && (sumVert == preWin1 || sumVert == preWin2)) {
+                for (int z = 0; z < fieldSizeY; z++) {
+                    if (temp[z] == DOT_EMPTY) {
+                        field[z][j] = DOT_AI;
+                        counter++;
+                    }
+                }
+            }
+            sumVert = 0;
+        }
+        if (counter == 0) {
+            do {
+                x = RANDOM.nextInt(fieldSizeX);
+                y = RANDOM.nextInt(fieldSizeY);
+            } while (!isEmptyCell(x, y));
+            field[y][x] = DOT_AI;
+        }
+    }
+
