@@ -1,0 +1,102 @@
+// 3. * Попробовать переписать логику проверки победы, чтобы она работала для поля 5х5 и количества символов 4.
+
+	private static boolean checkWin(char c) {  // метод работает для n <= fieldSizeX && n <= fieldSizeY
+    //    int numberToWin = 4;    //   чмсло символов выигрышной последовательности; вынес в initField()
+        int sumHoriz = 0;
+        int sumVert = 0;
+        int sumDiag1 = 0;     // сумма элементов прямой диагонали
+        int sumDiag2 = 0;     // сумма элементов обратной диагонали
+        for (int i = 0; i < fieldSizeY; i++) {
+            for (int j = 0; j < fieldSizeX; j++) {
+                for (int k = 0; k < numberToWin; k++) {
+                    if (j + k < fieldSizeX) {
+                        sumHoriz += field[i][j + k];
+                    }
+                    if (j + k < fieldSizeY) {
+                        sumVert += field[j + k][i];
+                    }
+                    if (i + k < fieldSizeY && j + k < fieldSizeX) {
+                        sumDiag1 += field[i + k][j + k];
+                    }
+                    if (i - k >= 0 && j + k < fieldSizeX) {
+                        sumDiag2 += field[i - k][j + k];
+                    }
+                }
+                if (sumHoriz == numberToWin * c || sumVert == numberToWin * c || sumDiag1 == numberToWin * c || sumDiag2 == numberToWin * c) {
+                    return true;
+                }
+                sumHoriz = sumVert = sumDiag1 = sumDiag2 = 0;
+            }
+        }
+        return false;
+    }
+
+
+
+// 4. *** Доработать искусственный интеллект, чтобы он мог блокировать ходы игрока, и пытаться выиграть сам.
+
+	private static void aiTurn() {
+        int counter = 0;
+        int sumHoriz = 0;
+        int sumVert = 0;
+        int sumDiag1 = 0;     // сумма элементов прямой диагонали
+        int sumDiag2 = 0;     // сумма элементов обратной диагонали
+
+        for (int n = numberToWin; n > 1; n--) {
+            for (int i = 0; i < fieldSizeY; i++) {
+                for (int j = 0; j < fieldSizeX; j++) {
+                    for (int k = 0; k < n; k++) {
+                        if (j + k < fieldSizeX) {
+                            sumHoriz += field[i][j + k];
+                        }
+                        if (j + k < fieldSizeY) {
+                            sumVert += field[j + k][i];
+                        }
+                        if (i + k < fieldSizeY && j + k < fieldSizeX) {
+                            sumDiag1 += field[i + k][j + k];
+                        }
+                        if (i - k >= 0 && j + k < fieldSizeX) {
+                            sumDiag2 += field[i - k][j + k];
+                        }
+                    }
+                    if (counter == 0 && (sumHoriz == (n - 1) * DOT_AI + DOT_EMPTY || sumHoriz == (n - 1) * DOT_HUMAN + DOT_EMPTY)) {
+                        for (int k = 0; k < n; k++) {
+                            if (field[i][j + k] == DOT_EMPTY) {
+                                field[i][j + k] = DOT_AI;
+                                counter++;
+                                break;
+                            }
+                        }
+                    }
+                    if (counter == 0 && (sumVert == (n - 1) * DOT_AI + DOT_EMPTY || sumVert == (n - 1) * DOT_HUMAN + DOT_EMPTY)) {
+                        for (int k = 0; k < n; k++) {
+                            if (field[j + k][i] == DOT_EMPTY) {
+                                field[j + k][i] = DOT_AI;
+                                counter++;
+                                break;
+                            }
+                        }
+                    }
+                    if (counter == 0 && (sumDiag1 == (n - 1) * DOT_AI + DOT_EMPTY || sumDiag1 == (n - 1) * DOT_HUMAN + DOT_EMPTY)) {
+                        for (int k = 0; k < n; k++) {
+                            if (field[i + k][j + k] == DOT_EMPTY) {
+                                field[i + k][j + k] = DOT_AI;
+                                counter++;
+                                break;
+                            }
+                        }
+                    }
+                    if (counter == 0 && (sumDiag2 == (n - 1) * DOT_AI + DOT_EMPTY || sumDiag2 == (n - 1) * DOT_HUMAN + DOT_EMPTY)) {
+                        for (int k = 0; k < n; k++) {
+                            if (field[i - k][j + k] == DOT_EMPTY) {
+                                field[i - k][j + k] = DOT_AI;
+                                counter++;
+                                break;
+                            }
+                        }
+                    }
+                    sumHoriz = sumVert = sumDiag1 = sumDiag2 = 0;
+                }
+            }
+        }
+    }
